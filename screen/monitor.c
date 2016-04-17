@@ -166,7 +166,8 @@ void monitor_write_number(u32int val, u32int base)
 
 void write_message_and_wait(char *c)
 {
-    for (int i = 0; i< 100000 * 10000; i++){
+	int i=0;
+    for (i = 0; i< 100000 * 10000; i++){
         if (i == 0){
             monitor_write(c);    
         }
