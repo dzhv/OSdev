@@ -53,12 +53,7 @@ heap_t *create_heap(u32int start, u32int end_addr, u32int max, u8int supervisor,
     ASSERT(end_addr % 0x1000 == 0);
     // Initialise the index.
 
-ordered_array_t asd =place_ordered_array((void*)start, HEAP_INDEX_SIZE, &header_t_less_than);
-int i;
-monitor_write("Tuoj indexui priskirsiu suda\n");
-
     heap->index = place_ordered_array((void*)start, HEAP_INDEX_SIZE, &header_t_less_than);
-monitor_write("indexui priskyriau suda\n");
 
     // Shift the start address forward to resemble where we can start putting data.
     start += sizeof(type_t)*HEAP_INDEX_SIZE;
@@ -135,8 +130,7 @@ static u32int contract(u32int new_size, heap_t *heap)
 }
 
 void *alloc(u32int size, u8int page_align, heap_t *heap)
-{
-
+{    
     // Make sure we take the size of header/footer into account.
     u32int new_size = size + sizeof(header_t) + sizeof(footer_t);
     // Find the smallest hole that will fit.
@@ -358,10 +352,16 @@ void kfree(void *p)
 //new
 u32int kmalloc_int(u32int sz, int align, u32int *phys)
 {
-    // This will eventually call malloc() on the kernel heap.
-    // For now, though, we just assign memory at placement_address
-    // and increment it by sz. Even when we've coded our kernel
-    // heap, this will be useful for use before the heap is initialised.
+    if (kheap != 0){
+        void *addr = alloc(sz, align, kheap);
+        if (phys != 0){
+            page_t *page = get_page((u32int) addr, 0, kernel_directory);
+            *phys = page->frame*0x1000 + ((u32int) addr&0xFFF);
+        }
+        return (u32int)addr;
+    }
+
+
     if (align == 1 && (placement_address & 0xFFFFF000) )
     {
         // Align the placement address;
@@ -395,6 +395,6 @@ u32int kmalloc_ap(u32int sz, u32int *phys)
 u32int kmalloc(u32int sz)
 {
 	//void *addr = kmalloc_int(sz, 0, 0);
-	//memset(addr, 0, sz);
+	//memset(addr, 0, sz);    
     return kmalloc_int(sz, 0, 0);//addr;
 }
