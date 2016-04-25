@@ -28,9 +28,6 @@ ordered_array_t place_ordered_array(void *addr, u32int max_size, lessthan_predic
     to_ret.size = 0;
     to_ret.max_size = max_size;
     to_ret.less_than = less_than;
-int i;
-monitor_write("place_ordered_array\n");
-for (i=0;i<500000000;i++) {}
     return to_ret;
 }
 

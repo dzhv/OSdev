@@ -56,10 +56,10 @@ heap_t *create_heap(u32int start, u32int end_addr, u32int max, u8int supervisor,
 ordered_array_t asd =place_ordered_array((void*)start, HEAP_INDEX_SIZE, &header_t_less_than);
 int i;
 monitor_write("Tuoj indexui priskirsiu suda\n");
-for (i=0;i<500000000;i++) {}
+
     heap->index = place_ordered_array((void*)start, HEAP_INDEX_SIZE, &header_t_less_than);
 monitor_write("indexui priskyriau suda\n");
-for (i=0;i<500000000;i++) {}
+
     // Shift the start address forward to resemble where we can start putting data.
     start += sizeof(type_t)*HEAP_INDEX_SIZE;
     // Make sure the start address is page-aligned.
