@@ -3,7 +3,7 @@
 # The only one that needs changing is the assembler 
 # rule, as we use nasm instead of GNU as.
 
-SOURCES=boot.o main.o common/common.o screen/monitor.o descriptors/descriptor_tables.o descriptors/gdt.o interrupts/interrupt.o interrupts/isr.o timer/timer.o heap/kheap.o paging/paging.o
+SOURCES=boot.o main.o common/common.o screen/monitor.o descriptors/descriptor_tables.o descriptors/gdt.o interrupts/interrupt.o interrupts/isr.o timer/timer.o common/ordered_map.o paging/paging.o heap/kheap.o
 
 CFLAGS=-nostdlib -nostdinc -fno-builtin -fno-stack-protector
 LDFLAGS=-Tlink.ld
