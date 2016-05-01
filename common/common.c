@@ -2,6 +2,7 @@
 //             From JamesM's kernel development tutorials.
 
 #include "common.h"
+#include "../screen/monitor.h"
 
 // Write a byte out to the specified port.
 void outb(u16int port, u8int value)
@@ -28,7 +29,7 @@ void memcpy(u8int *dest, const u8int *src, u32int len)
 {
     const u8int *sp = (const u8int *)src;
     u8int *dp = (u8int *)dest;
-    for(; len != 0; len--) *dp++ = *sp++;
+    for(; len != 0; len--) {*dp++ = *sp++;}
 }
 
 // Write len copies of val into dest.
@@ -108,7 +109,7 @@ extern void panic_assert(const char *file, u32int line, const char *desc)
 {
     // An assertion failed, and we have to panic.
     asm volatile("cli"); // Disable interrupts.
-
+monitor_write("stai ir as");
     monitor_write("ASSERTION-FAILED(");
     monitor_write(desc);
     monitor_write(") at ");

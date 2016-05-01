@@ -1,70 +1,55 @@
-// paging.h -- Defines the interface for and structures relating to paging.
-//             Written for JamesM's kernel development tutorials.
-
-#ifndef PAGING_H
-#define PAGING_H
+#ifndef _PAGING_H_
+#define _PAGING_H_
 
 #include "../common/common.h"
 #include "../interrupts/isr.h"
 
-typedef struct page
-{
-    u32int present    : 1;   // Page present in memory
-    u32int rw         : 1;   // Read-only if clear, readwrite if set
-    u32int user       : 1;   // Supervisor level only if clear
-    u32int accessed   : 1;   // Has the page been accessed since last refresh?
-    u32int dirty      : 1;   // Has the page been written to since last refresh?
-    u32int unused     : 7;   // Amalgamation of unused and reserved bits
-    u32int frame      : 20;  // Frame address (shifted right 12 bits)
+typedef struct page {
+  u32int present:1;  // page present in memory?
+  u32int rw:1;       // read-only if 0, rw if 1
+  u32int user:1;     // kernel if 0, user if 1
+  u32int accessed:1; // page accessed since last refresh?
+  u32int dirty:1;    // page written to since last refresh?
+  u32int unused:7;   // unused and reserved bits
+  u32int frame:20;   // page frame number (shifted right 12 bits), 
+                     // since only the top 20 matter
 } page_t;
 
-typedef struct page_table
-{
-    page_t pages[1024];
+typedef struct page_table {
+  page_t pages[1024];
 } page_table_t;
 
-typedef struct page_directory
-{
-    /**
-       Array of pointers to pagetables.
-    **/
-    page_table_t *tables[1024];
-    /**
-       Array of pointers to the pagetables above, but gives their *physical*
-       location, for loading into the CR3 register.
-    **/
-    u32int tablesPhysical[1024];
 
-    /**
-       The physical address of tablesPhysical. This comes into play
-       when we get our kernel heap allocated and the directory
-       may be in a different location in virtual memory.
-    **/
-    u32int physicalAddr;
+typedef struct page_directory {
+
+  // pointers to page tables
+  page_table_t *tables[1024];
+
+  // physical addresses of page tables
+  u32int tablesPhysical[1024];
+
+  // physical address of tablesPhysical
+  u32int physicalAddr;
 } page_directory_t;
 
-/**
-   Sets up the environment, page directories etc and
-   enables paging.
-**/
-void initialise_paging();
 
-/**
-   Causes the specified page directory to be loaded into the
-   CR3 register.
-**/
+// set up environment and page tables and enable paging
+void initialize_paging();
+
+
+// load a page directory into CR3
 void switch_page_directory(page_directory_t *new);
 
-/**
-   Retrieves a pointer to the page required.
-   If make == 1, if the page-table in which this page should
-   reside isn't created, create it!
-**/
-page_t *get_page(u32int address, int make, page_directory_t *dir);
+// clone a page directory
+page_directory_t *clone_directory(page_directory_t *src);
 
-/**
-   Handler for page faults.
-**/
+// get a pointer to the page `address' lies in, creating the page's table
+//  if make == 1 and the table doesn't exist yet
+page_t *get_page(u32int address, int make, page_directory_t *dir);
+// map in and free a page
+void alloc_frame(page_t *page, int is_kernel, int is_writeable);
+void free_frame(page_t *page);
+// page fault handler
 void page_fault(registers_t regs);
 
 #endif

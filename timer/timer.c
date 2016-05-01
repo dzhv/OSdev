@@ -2,14 +2,17 @@
 //            Written for JamesM's kernel development tutorials.
 
 #include "timer.h"
-#include "../interrupts/isr.h"
+//#include "../interrupts/isr.h"
 #include "../screen/monitor.h"
+#include "../common/common.h"
+#include "../multitasking/task.h"
 
 u32int tick = 0;
 
 static void timer_callback(registers_t regs)
 {
     tick++;
+    switch_task();
     // monitor_write("Tick: ");
     // monitor_write_number(tick, 10);
     // monitor_write("\n");
