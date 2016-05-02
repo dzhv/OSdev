@@ -10,6 +10,37 @@
 
 u32int initial_esp;
 
+void process1(){
+    int i = 0;
+        while(1){
+            i++;
+            if (i % 1000000 == 0){
+                monitor_write("1");    
+            }     
+        }
+}
+
+void process2(){
+    int i = 0;
+        while(1){
+            i++;
+            if (i % 1000000 == 0){
+                monitor_write("2");    
+            }     
+        }
+}
+
+void process3(){
+    int i = 0;
+        while(1){
+            i++;
+            if (i % 1000000 == 0){
+                monitor_write("3");    
+            }     
+        }
+}
+
+
 int kmain(struct multiboot *mboot_ptr, u32int initial_stack)
 {
     initial_esp = initial_stack;
@@ -46,6 +77,10 @@ int kmain(struct multiboot *mboot_ptr, u32int initial_stack)
     init_timer(50);
     pid_t ret = fork();
     pid_t my_pid = getpid();
+    runFunctionAsync(process1);
+    runFunctionAsync(process2);
+    runFunctionAsync(process3);
+
     monitor_write("\nfork() returned: ");
     monitor_write_number(ret,16);
     monitor_write(", and getpid() returned ");
@@ -57,3 +92,5 @@ int kmain(struct multiboot *mboot_ptr, u32int initial_stack)
     }
 	return 0;
 }
+
+

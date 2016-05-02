@@ -183,3 +183,12 @@ void move_stack(void *new_stack_start, u32int size)
   asm volatile("mov %0, %%esp" : : "r" (new_stack_pointer));
   asm volatile("mov %0, %%ebp" : : "r" (new_base_pointer));
 }
+
+void runFunctionAsync(void (*function)( void ) ){
+    pid_t current_task_id = getpid();
+    fork();
+    if (getpid() == current_task_id){
+        return;
+    }
+    (*function)();
+}
