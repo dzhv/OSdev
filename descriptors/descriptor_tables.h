@@ -1,21 +1,17 @@
 // 
 // descriptor_tables.h - Defines the interface for initialising the GDT and IDT.
 //                       Also defines needed structures.
-//                       Based on code from Bran's kernel development tutorials.
-//                       Rewritten for JamesM's kernel development tutorials.
-//
 
 #ifndef DESCRIPTOR_TABLES_H
 #define DESCRIPTOR_TABLES_H
 
 #include "../common/common.h"
 
-// Initialisation function is publicly accessible.
 void init_descriptor_tables();
 
 
-// This structure contains the value of one GDT entry.
-// We use the attribute 'packed' to tell GCC not to change
+// Describes one GDT entry.
+// 'packed' is required for telling GCC not to change
 // any of the alignment in the structure.
 struct gdt_entry_struct
 {
@@ -29,8 +25,8 @@ struct gdt_entry_struct
 
 typedef struct gdt_entry_struct gdt_entry_t;
 
-// This struct describes a GDT pointer. It points to the start of
-// our array of GDT entries, and is in the format required by the
+// Describes a GDT pointer. It points to the start of
+// array of GDT entries, and is in the format required by the
 // lgdt instruction.
 struct gdt_ptr_struct
 {
@@ -40,7 +36,7 @@ struct gdt_ptr_struct
 
 typedef struct gdt_ptr_struct gdt_ptr_t;
 
-// A struct describing an interrupt gate.
+// Describes an interrupt gate.
 struct idt_entry_struct
 {
     u16int base_lo;             // The lower 16 bits of the address to jump to when this interrupt fires.

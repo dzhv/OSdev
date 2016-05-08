@@ -1,9 +1,3 @@
-//
-// isr.c -- High level interrupt service routines and interrupt request handlers.
-//          Part of this code is modified from Bran's kernel development tutorials.
-//          Rewritten for JamesM's kernel development tutorials.
-//
-
 #include "../common/common.h"
 #include "isr.h"
 #include "../screen/monitor.h"
@@ -11,9 +5,7 @@
 isr_t interrupt_handlers[256];
 
 void register_interrupt_handler(u8int n, isr_t handler)
-{
-    monitor_write("registering handler: ");
-    monitor_write_number(n, 10);
+{    
     interrupt_handlers[n]= handler;
 }
 

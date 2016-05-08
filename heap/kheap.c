@@ -7,7 +7,7 @@ u32int placement_address = (u32int)&end;
 extern page_directory_t *kernel_directory;
 
 heap_t *kheap=0;
-//new
+
 static s32int find_smallest_hole(u32int size, u8int page_align, heap_t *heap)
 {
     // Find the smallest hole that will fit.
@@ -349,9 +349,9 @@ void kfree(void *p)
     free(p, kheap);
 }
 
-//new
 u32int kmalloc_int(u32int sz, int align, u32int *phys)
 {
+    // heap malloc
     if (kheap != 0){
         void *addr = alloc(sz, align, kheap);
         if (phys != 0){
@@ -361,7 +361,7 @@ u32int kmalloc_int(u32int sz, int align, u32int *phys)
         return (u32int)addr;
     }
 
-
+    // malloc before heap is created
     if (align == 1 && (placement_address & 0xFFFFF000) )
     {
         // Align the placement address;

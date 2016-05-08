@@ -38,7 +38,7 @@ do_switch_task:
 	pop ecx 		; first parameter is the new eip
 	pop esi 		; second parameter is new esp, store in esi temporarily
 	pop edi 		; third is new ebp, store in edi temporarily
-	pop edx 		; fourth is new cr3, but we can't pop
+	pop edx 		; fourth is new cr3, but we cant pop
 	mov esp, esi
 	mov ebp, edi
 	mov cr3, edx 		; directly into that

@@ -1,19 +1,12 @@
-//
-// descriptor_tables.c - Initialises the GDT and IDT, and defines the 
-//                       default ISR and IRQ handler.
-//                       Based on code from Bran's kernel development tutorials.
-//                       Rewritten for JamesM's kernel development tutorials.
-//
-
 #include "../common/common.h"
 #include "descriptor_tables.h"
 #include "../interrupts/isr.h"
 
-// Lets us access our ASM functions from our C code.
+// ASM functions
 extern void gdt_flush(u32int);
 extern void idt_flush(u32int);
 
-// Internal function prototypes.
+// Internal functions
 static void init_gdt();
 static void init_idt();
 static void gdt_set_gate(s32int,u32int,u32int,u8int,u8int);
@@ -27,11 +20,10 @@ idt_ptr_t   idt_ptr;
 // Extern the ISR handler array so we can nullify them on startup.
 extern isr_t interrupt_handlers[];
 
-// Initialisation routine - zeroes all the interrupt service routines,
-// initialises the GDT and IDT.
+// initialises the GDT and IDT,
+// zeroes all the interrupt service routines.
 void init_descriptor_tables()
 {
-
     // Initialise the global descriptor table.
     init_gdt();
     // Initialise the interrupt descriptor table.

@@ -1,9 +1,5 @@
-;
-; interrupt.s -- Contains interrupt service routine wrappers.
-;                Based on Bran's kernel development tutorials.
-;                Rewritten for JamesM's kernel development tutorials.
 
-; This macro creates a stub for an ISR which does NOT pass it's own
+; This macro creates a stub for an ISR which does NOT pass its own
 ; error code (adds a dummy errcode byte).
 %macro ISR_NOERRCODE 1
   global isr%1
@@ -14,7 +10,7 @@
     jmp isr_common_stub         ; Go to our common handler code.
 %endmacro
 
-; This macro creates a stub for an ISR which passes it's own
+; This macro creates a stub for an ISR which passes its own
 ; error code.
 %macro ISR_ERRCODE 1
   global isr%1

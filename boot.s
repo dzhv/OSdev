@@ -1,5 +1,3 @@
-;;kernel.asm
-
 ;nasm directive - 32 bit
 bits 32
 section .text

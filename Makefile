@@ -1,7 +1,3 @@
-# Makefile for JamesM's kernel tutorials.
-# The C and C++ rules are already setup by default.
-# The only one that needs changing is the assembler 
-# rule, as we use nasm instead of GNU as.
 
 SOURCES=boot.o main.o multitasking/process.o common/common.o screen/monitor.o descriptors/descriptor_tables.o descriptors/gdt.o interrupts/interrupt.o interrupts/isr.o timer/timer.o common/ordered_map.o paging/paging.o heap/kheap.o multitasking/task.o
 

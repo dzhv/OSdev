@@ -147,7 +147,7 @@ void move_stack(void *new_stack_start, u32int size)
     alloc_frame(get_page(i,1,current_directory),0,1);
   }
 
-  // flush tlb
+  // A page table has been changed, so we flush tlb
   u32int pd_addr = 0;
   asm volatile("mov %%cr3, %0" : "=r"(pd_addr));
   asm volatile("mov %0, %%cr3" : : "r"(pd_addr));

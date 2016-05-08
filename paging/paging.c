@@ -106,7 +106,7 @@ static page_table_t *clone_table(page_table_t *src, u32int *physAddr)
   
   int i = 0;
   for(i = 0; i < 1024; ++i) {
-    // ignore unmapped pages (THIS WILL CHANGE)
+    // ignore unmapped pages
     if(!src->pages[i].frame) {
       continue;
     }
@@ -161,7 +161,7 @@ page_directory_t *clone_directory(page_directory_t *src)
 
 void initialize_paging()
 {
-  // assuming for now that we have 16M of memory - we'll fix this
+  // assuming for now that we have 16M of memory
   u32int mem_end_page = 0x1000000;
 
   // number of page frames == memory / page frame size
@@ -203,12 +203,9 @@ void initialize_paging()
   switch_page_directory(kernel_directory);
 
   // we've enabled paging, now create a heap!
-  kheap = create_heap(KHEAP_START, KHEAP_START + KHEAP_INITIAL_SIZE, 0xCFFFF000, 0, 0);
-  monitor_write("About to enable paging\n");
+  kheap = create_heap(KHEAP_START, KHEAP_START + KHEAP_INITIAL_SIZE, 0xCFFFF000, 0, 0);  
   current_directory = clone_directory(kernel_directory);
   switch_page_directory(current_directory);
-
-  monitor_write("Paging enabled!\n");
 }
 
 void switch_page_directory(page_directory_t *dir)
