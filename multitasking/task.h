@@ -38,6 +38,8 @@ typedef struct task {
 
 void async_send(message_t msg);
 
+message_t async_recv();
+
 void initialize_tasking();
 
 void switch_task();
@@ -58,8 +60,6 @@ message_t* pop_message(pid_t id);
 message_t create_message(char* message, pid_t src, pid_t dst);
 
 void push_message(message_t msg);
-
-
 
 message_t sync_recv();
 

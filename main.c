@@ -12,6 +12,7 @@ u32int initial_esp;
 
 void process0() {
     int i=0;
+    message_t msg;
 
     while (1) {
         for (i = 0; i < 100000000; i++) {
@@ -20,10 +21,12 @@ void process0() {
             }   
         }
 
-        message_t msg = create_message("DU GAIDELIAI", 2, 3);
+        msg = create_message("DU GAIDELIAI", 2, 3);
         async_send(msg);
-        async_recv();
-        //monitor_write(response.body);
+        msg = async_recv();
+        monitor_write("First process got message: ");
+        monitor_write(msg.body);
+        monitor_write("\n");
     }
 }
 
@@ -31,14 +34,18 @@ void process1(){
     int i = 0;
 
     while(1){
-        async_recv();
+        message_t message = async_recv();
+        monitor_write("Second process got message: ");
+        monitor_write(message.body);
+        monitor_write("\n");
+
         for (i = 0; i < 100000000; i++) {
             if (i % 10000000 == 0){
                 monitor_write_number(getpid(), 10);
             }
         }
 
-        message_t msg = create_message("TRYS GAIDELIAI", 3, 2);
+        message_t msg = create_message("TRYS GAIDELIAI", 3, 4);
         async_send(msg);    
     }
 }
@@ -46,11 +53,20 @@ void process1(){
 void process2(){
     int i = 0;
         while(1){
-            i++;
-            if (i % 1000000 == 0){
-                monitor_write("2");    
-            }     
+        message_t message = async_recv();
+        monitor_write("Third process got message: ");
+        monitor_write(message.body);
+        monitor_write("\n");
+
+        for (i = 0; i < 100000000; i++) {
+            if (i % 10000000 == 0){
+                monitor_write_number(getpid(), 10);
+            }
         }
+
+        message_t msg = create_message("KETURI GAIDELIAI", 3, 2);
+        async_send(msg);    
+    }
 }
 
 void process3(){
@@ -85,7 +101,7 @@ int kmain(struct multiboot *mboot_ptr, u32int initial_stack)
 
     runFunctionAsync(process1);
     //runFunctionAsync(process1);
-    //runFunctionAsync(process2);
+    runFunctionAsync(process2);
     //runFunctionAsync(process3);
   
     while(1){

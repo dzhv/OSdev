@@ -290,27 +290,41 @@ void push_message(message_t msg) {
 
   task_t *process = getProcess(msg.dst); 
   int head = process->messages_buffer.head;
-  if (++head > MAX_MESSAGES) head = 0;
-  if (process->messages_buffer.count == 0 && head == 0) process->messages_buffer.tail = 1;
-  process->messages_buffer.head = head;
-  process->messages_buffer.count++;
+  if (head + 1 >= MAX_MESSAGES) {
+    process->messages_buffer.head = 0;
+  } else {
+    process->messages_buffer.head = head+1;
+  }
   process->messages_buffer.buffer[head] = msg;
-  monitor_write("\nPROCESS ID: ");
+  process->messages_buffer.count++;
+  /*monitor_write("\nPROCESS ID: ");
   monitor_write_number(process->id, 10);
   monitor_write("\n");
   monitor_write("\nHEAD: ");
   monitor_write_number(head, 10);
   monitor_write("\n");
+  monitor_write("\nMESSAGE(PUSH): ");
+  monitor_write(msg.body);
+  monitor_write("\n");*/
 
 }
 
 message_t* pop_message(pid_t id) {
   task_t *process = getProcess(id);
+  if (process->messages_buffer.count == 0) {
+    return 0;
+  }
+
   int tail = process->messages_buffer.tail;
   message_t return_msg = process->messages_buffer.buffer[tail];
-  if (++tail > MAX_MESSAGES) process->messages_buffer.tail = 0;
+  if (++tail >= MAX_MESSAGES) process->messages_buffer.tail = 0;
   process->messages_buffer.count--;
-
+  /*monitor_write("\nTAIL: ");
+  monitor_write_number(tail, 10);
+  monitor_write("\n");
+  monitor_write("\nMESSAGE(POP): ");
+  monitor_write(return_msg.body);
+  monitor_write("\n");*/
   return &return_msg;
 }
 
