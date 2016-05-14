@@ -27,6 +27,8 @@ extern page_directory_t *kernel_directory;
 extern page_directory_t *current_directory;
 
 pid_t next_pid = 1;
+int task_switch_enabled = 1;
+//buffer_t messages_buffer;
 
 void initialize_tasking() 
 { 
@@ -65,6 +67,7 @@ pid_t fork()
   new_task->eip = 0;
   new_task->page_directory = directory;
   new_task->next = 0;
+  new_task->task_state = RUNNING;
 
 
   // walk the task list to find the end and add the task
@@ -98,6 +101,9 @@ pid_t fork()
 
 void switch_task()
 {
+  if (!task_switch_enabled) {
+    return;
+  }
   // just return if tasking isn't on yet
   if(!current_task) {
     return;
@@ -118,6 +124,29 @@ void switch_task()
   current_task->esp = esp;
   current_task->ebp = ebp;
 
+//--------------------------------------------------------------------------------------
+
+/*  while (1) {
+    current_task = current_task->next;
+    if (!current_task) {
+      current_task = ready_queue;
+    }
+
+    if (current_task->task_state == RUNNING) {
+      current_task->task_state = SUSPENDED;
+      break;
+    } else {
+      current_task->task_state = RUNNING;
+      int i = 0;
+      for (i = 0; i < 100000000; i++) {};
+        monitor_write("SUSPENDED");
+      continue;
+    }
+    //monitor_write("SUSPENDED");
+  }
+  //monitor_write("RUNNING");
+  current_task->task_state = SUSPENDED;*/
+//--------------------------------------------------------------------------------------
   // get the next task to run
   current_task = current_task->next;
   if(!current_task) {
@@ -134,6 +163,17 @@ void switch_task()
 
 pid_t getpid() {  
   return current_task->id;
+}
+
+task_t* getProcess(pid_t id) {
+    task_t *current = ready_queue;
+    while (current) {
+      if (current->id == id) {
+        return current;
+      }
+    }
+
+    return 0;
 }
 
 void move_stack(void *new_stack_start, u32int size)
@@ -191,4 +231,82 @@ void runFunctionAsync(void (*function)( void ) ){
         return;
     }
     (*function)();
+}
+
+void async_send(message_t *msg)
+{
+
+  task_switch_enabled = 0;
+  msg->src=current_task->id; //we must not rely on it's set
+  task_t *dst = getProcess(msg->dst);
+  buffer_t tmpbuff = dst->messages_buffer;//map_buffer(msg->dst); //temporarily map destination's buffer into sender process' address space
+  //if (tmpbuff->count==MAXITEMS) { //if receiver buffer is full, block
+//    pushwaitqueue(msg.dst,current_process); //record this process in dst's sender queue
+ //   block(current_process);
+ // }
+    push_message(msg);
+  //push_message(tmpbuff,msg);
+  if (dst->task_state == SUSPENDED) dst->task_state = RUNNING;
+//  if(isblocked(msg.dst)) awake(msg.dst);  //if destination process is blocked for receiving, awake it
+ // unmap_buffer();
+  
+  task_switch_enabled = 1;
+}
+
+message_t async_recv()
+{
+  message_t *tmp=0;
+
+  task_switch_enabled = 0;
+  if (current_task->messages_buffer.count==0) current_task->task_state = SUSPENDED;//block(current_process); //if there's nothing to get, block
+
+  *tmp = pop_message(current_task->id);
+  //tmp=pop_message(buff);
+  //while(topwaitqueue()!=NULL) awake(popwaitqueue()); //awake blocked processes waiting to send
+  task_switch_enabled = 1;
+  return (*tmp);
+}
+
+message_t sync_send(message_t msg)
+{
+  async_send(&msg); //we send the message
+  return(async_recv()); //and we block waiting for the response
+}
+
+message_t sync_recv()
+{
+  message_t tmp;
+  tmp=async_recv();  //wait for a message to arrive
+  //tmp=consume(tmp);  //process the message and return a response message
+  async_send(&tmp);   //send it back to the caller
+  return tmp;
+}
+
+void push_message(message_t msg) {
+  task_t *process = getProcess(msg.dst); 
+  int head = process->messages_buffer.head;
+  if (++head > MAX_MESSAGES) head = 0;
+  process->messages_buffer.head = head;
+  process->messages_buffer.count++;
+  process->messages_buffer.buffer[head] = msg;
+}
+
+message_t pop_message(pid_t id) {
+  task_t *process = getProcess(id);
+
+  int tail = process->messages_buffer.tail;
+  message_t return_msg = process->messages_buffer.buffer[tail];
+
+  if (++tail > MAX_MESSAGES) process->messages_buffer.tail = 0;
+  process->messages_buffer.count--;
+  return return_msg;
+}
+
+message_t create_message(char* message, pid_t src, pid_t dst) {
+  message_t msg;
+  msg.body = *message;
+  msg.src = src;
+  msg.dst = dst;
+
+  return msg;
 }

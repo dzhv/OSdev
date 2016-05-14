@@ -10,14 +10,27 @@
 
 u32int initial_esp;
 
+void process0() {
+    int i=0;
+
+   // while (1) {
+        for (i = 0; i < 100000000; i++) {
+            if (i % 1000000 == 0){
+                monitor_write("0");
+            }   
+        }    
+   // }
+}
+
 void process1(){
     int i = 0;
-        while(1){
-            i++;
-            if (i % 1000000 == 0){
-                monitor_write("1");    
-            }     
-        }
+
+    while(1){
+        i++;
+        if (i % 1000000 == 0){
+            monitor_write("1");    
+        }     
+    }
 }
 
 void process2(){
@@ -58,10 +71,10 @@ int kmain(struct multiboot *mboot_ptr, u32int initial_stack)
 
     asm volatile("sti");        // enable interrupts
     init_timer(50);
-
-    runFunctionAsync(process1);
-    runFunctionAsync(process2);
-    runFunctionAsync(process3);
+    runFunctionAsync(process0);
+    //runFunctionAsync(process1);
+    //runFunctionAsync(process2);
+    //runFunctionAsync(process3);
 
   
     while(1){
