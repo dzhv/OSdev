@@ -45,10 +45,22 @@ pid_t fork();
 // copy the current process's stack to a new location and update esp/ebp
 void move_stack(void *new_stack_start, u32int size);
 
-pid_t getpid(); 
+pid_t getpid();
+
+task_t* getProcess(pid_t id);
 
 void runFunctionAsync();
 
-void async_send(msg);
+message_t* pop_message(pid_t id);
+
+message_t create_message(char* message, pid_t src, pid_t dst);
+
+void push_message(message_t msg);
+
+void async_send(message_t msg);
+
+message_t sync_recv();
+
+message_t sync_send(message_t msg);
 
 #endif

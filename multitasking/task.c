@@ -126,29 +126,20 @@ void switch_task()
 
 //--------------------------------------------------------------------------------------
 
-/*  while (1) {
+  while (1) {
     current_task = current_task->next;
     if (!current_task) {
       current_task = ready_queue;
     }
-
     if (current_task->task_state == RUNNING) {
-      current_task->task_state = SUSPENDED;
       break;
     } else {
-      current_task->task_state = RUNNING;
-      int i = 0;
-      for (i = 0; i < 100000000; i++) {};
-        monitor_write("SUSPENDED");
       continue;
     }
-    //monitor_write("SUSPENDED");
   }
-  //monitor_write("RUNNING");
-  current_task->task_state = SUSPENDED;*/
 //--------------------------------------------------------------------------------------
   // get the next task to run
-  current_task = current_task->next;
+  //current_task = current_task->next; old
   if(!current_task) {
     current_task = ready_queue;
   }
@@ -171,6 +162,7 @@ task_t* getProcess(pid_t id) {
       if (current->id == id) {
         return current;
       }
+      current = current->next;
     }
 
     return 0;
@@ -233,24 +225,30 @@ void runFunctionAsync(void (*function)( void ) ){
     (*function)();
 }
 
-void async_send(message_t *msg)
+void async_send(message_t msg)
 {
-
+  PANIC("before smth");
   task_switch_enabled = 0;
-  msg->src=current_task->id; //we must not rely on it's set
-  task_t *dst = getProcess(msg->dst);
+  monitor_write("\nDISABLED_send");
+  msg.src=current_task->id; //we must not rely on it's set
+  PANIC("before smth");
+  task_t *dst = getProcess(msg.dst);
+  PANIC("before smth");
   buffer_t tmpbuff = dst->messages_buffer;//map_buffer(msg->dst); //temporarily map destination's buffer into sender process' address space
   //if (tmpbuff->count==MAXITEMS) { //if receiver buffer is full, block
 //    pushwaitqueue(msg.dst,current_process); //record this process in dst's sender queue
  //   block(current_process);
  // }
+
     push_message(msg);
   //push_message(tmpbuff,msg);
   if (dst->task_state == SUSPENDED) dst->task_state = RUNNING;
+
 //  if(isblocked(msg.dst)) awake(msg.dst);  //if destination process is blocked for receiving, awake it
  // unmap_buffer();
   
   task_switch_enabled = 1;
+  monitor_write("\nENABLED");
 }
 
 message_t async_recv()
@@ -258,18 +256,31 @@ message_t async_recv()
   message_t *tmp=0;
 
   task_switch_enabled = 0;
-  if (current_task->messages_buffer.count==0) current_task->task_state = SUSPENDED;//block(current_process); //if there's nothing to get, block
+  monitor_write("DISABLED_recv");
+  if (current_task->messages_buffer.count==0){
+    current_task->task_state = SUSPENDED;//block(current_process); //if there's nothing to get, block
+    task_switch_enabled = 1;
+    switch_task();
+  } 
+  
 
-  *tmp = pop_message(current_task->id);
+  tmp = pop_message(current_task->id);
+  monitor_write("\n");
+  monitor_write(tmp->body);
+  monitor_write("\n");
+  
+  PANIC("asd");
   //tmp=pop_message(buff);
   //while(topwaitqueue()!=NULL) awake(popwaitqueue()); //awake blocked processes waiting to send
   task_switch_enabled = 1;
+  monitor_write("\nENABLED");
   return (*tmp);
 }
 
 message_t sync_send(message_t msg)
 {
-  async_send(&msg); //we send the message
+  async_send(msg); //we send the message
+  PANIC("MESSAGE SENDED");
   return(async_recv()); //and we block waiting for the response
 }
 
@@ -278,7 +289,7 @@ message_t sync_recv()
   message_t tmp;
   tmp=async_recv();  //wait for a message to arrive
   //tmp=consume(tmp);  //process the message and return a response message
-  async_send(&tmp);   //send it back to the caller
+  async_send(tmp);   //send it back to the caller
   return tmp;
 }
 
@@ -291,22 +302,20 @@ void push_message(message_t msg) {
   process->messages_buffer.buffer[head] = msg;
 }
 
-message_t pop_message(pid_t id) {
+message_t* pop_message(pid_t id) {
   task_t *process = getProcess(id);
-
   int tail = process->messages_buffer.tail;
   message_t return_msg = process->messages_buffer.buffer[tail];
 
   if (++tail > MAX_MESSAGES) process->messages_buffer.tail = 0;
   process->messages_buffer.count--;
-  return return_msg;
+  return &return_msg;
 }
 
 message_t create_message(char* message, pid_t src, pid_t dst) {
   message_t msg;
-  msg.body = *message;
+  msg.body = message;
   msg.src = src;
   msg.dst = dst;
-
   return msg;
 }

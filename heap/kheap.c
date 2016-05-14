@@ -130,7 +130,8 @@ static u32int contract(u32int new_size, heap_t *heap)
 }
 
 void *alloc(u32int size, u8int page_align, heap_t *heap)
-{    
+{
+	write_heap_alloc_info_before(heap, size);
     // Make sure we take the size of header/footer into account.
     u32int new_size = size + sizeof(header_t) + sizeof(footer_t);
     // Find the smallest hole that will fit.
@@ -255,11 +256,13 @@ void *alloc(u32int size, u8int page_align, heap_t *heap)
 
     //5---------------
     // ...And we're done!
+    write_heap_alloc_info_after(heap, (u32int)block_header + sizeof(header_t));
     return (void *)((u32int)block_header + sizeof(header_t));
 }
 
 void free(void *p, heap_t *heap)
 {
+	write_heap_free_info_before(heap, (u32int) p);
     // Exit gracefully for null pointers.
     if (p == 0)
         return;
@@ -329,7 +332,7 @@ void free(void *p, heap_t *heap)
         }
         else
         {
-            // We will no longer exist :(. Remove us from the index.
+            // We will no longer exist. Remove us from the index.
             u32int iterator = 0;
             while ((iterator < heap->index.size) &&
                 (lookup_ordered_array(iterator, &heap->index) != (void*)test_header))
@@ -342,6 +345,8 @@ void free(void *p, heap_t *heap)
 
     if (do_add == 1)
         insert_ordered_array((void*)header, &heap->index);
+
+    write_heap_free_info_after(heap);
 }
 
 void kfree(void *p)
@@ -393,8 +398,81 @@ u32int kmalloc_ap(u32int sz, u32int *phys)
 }
 
 u32int kmalloc(u32int sz)
-{
-	//void *addr = kmalloc_int(sz, 0, 0);
-	//memset(addr, 0, sz);    
+{	
     return kmalloc_int(sz, 0, 0);//addr;
+}
+
+void write_heap_alloc_info_before(heap_t *heap, u32int size){
+	monitor_write("---------------------------\n");
+//	monitor_write("Vyksta atminties alokavimas\n");
+	monitor_write("Bandoma isskirti atminties: ");
+	monitor_write_number(size, 10);
+	monitor_write("\n");
+	
+	write_heap_holes_info(heap);
+	// monitor_write("Heap Start address: ");
+ //    monitor_write_number(heap->start_address, 10);
+ //    monitor_write("\n");
+ //    monitor_write("Heap End address: ");
+ //    monitor_write_number(heap->end_address, 10);
+ //    monitor_write("\n");    
+}
+
+void write_heap_alloc_info_after(heap_t *heap, u32int location){
+//	monitor_write("Po:\n");
+	monitor_write("Atmintis isskirta: ");
+	monitor_write_number(location, 10);
+	monitor_write("\n");
+}
+
+void write_heap_free_info_before(heap_t *heap, u32int location){
+	monitor_write("-------------------------\n");
+	monitor_write("Atlaisvinama: ");
+	monitor_write_number(location, 10);
+	monitor_write("\n");
+
+	monitor_write("Heap Start address: ");
+    monitor_write_number(heap->start_address, 10);
+    monitor_write("\n");
+    monitor_write("Heap End address: ");
+    monitor_write_number(heap->end_address, 10);
+    monitor_write("\n");
+	
+	write_heap_holes_info(heap);
+}
+
+void write_heap_free_info_after (heap_t *heap){
+	monitor_write("Po atlaisvinimo:\n");
+
+	monitor_write("Heap prad. adresas: ");
+    monitor_write_number(heap->start_address, 10);
+    monitor_write("\n");
+    monitor_write("Heap pab. adresas: ");
+    monitor_write_number(heap->end_address, 10);
+    monitor_write("\n");
+
+	
+	write_heap_holes_info(heap);
+}
+
+void write_heap_holes_info(heap_t *heap){
+	u32int iterator = 0;	
+	while (iterator < heap->index.size)
+    {
+        header_t *header = (header_t *)lookup_ordered_array(iterator, &heap->index);
+        monitor_write("Blokas: ");
+        monitor_write_number(iterator, 10);
+        monitor_write("  Prad. adr: ");
+        monitor_write_number((u32int)header, 10);
+        // monitor_write("  sizeof header: ");
+        // monitor_write_number(sizeof(header), 10);
+        //monitor_write("\n");
+        monitor_write("  Pab. adr: ");
+        monitor_write_number((u32int)header + header->size, 10);
+        monitor_write("  Dydis: ");
+        monitor_write_number(header->size, 10);        
+        monitor_write("\n");
+        
+        iterator ++;
+    }
 }
