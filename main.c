@@ -47,21 +47,25 @@ int kmain(struct multiboot *mboot_ptr, u32int initial_stack)
 	
     init_descriptor_tables();
     
-    monitor_clear();     
+    monitor_clear();
    
     initialize_paging();
     
     initialize_tasking();
 
-    monitor_clear();
+    //monitor_clear();
     monitor_write("Operacine sistema pasileido\n");
 
     asm volatile("sti");        // enable interrupts
     init_timer(50);
+    
+    u32int temp = kmalloc(10000);
+    kfree(temp);
 
-    runFunctionAsync(process1);
-    runFunctionAsync(process2);
-    runFunctionAsync(process3);
+   // runFunctionAsync(process1);
+   // runFunctionAsync(process2);
+   // runFunctionAsync(process3);
+
 
   
     while(1){

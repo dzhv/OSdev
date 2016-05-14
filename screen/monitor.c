@@ -152,9 +152,11 @@ void monitor_write_number(u32int val, u32int base)
     if (val == 0) {
         *--str = '0';        
         monitor_write(str);
+        return;
     }
     if (base != 10 && base != 16) {    	
         monitor_write(str);
+        return;
     }
     while (val) {    	
         *--str = "0123456789abcdef"[val%base];
