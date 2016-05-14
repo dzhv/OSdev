@@ -14,14 +14,16 @@ void process0() {
     int i=0;
 
     while (1) {
-        for (i = 0; i < 10000000; i++) {
-            if (i % 1000000 == 0){
+        for (i = 0; i < 100000000; i++) {
+            if (i % 10000000 == 0){
                 monitor_write_number(getpid(), 10);
             }   
         }
 
-        message_t msg = create_message("asd", 2, 3);
-        message_t response = sync_send(msg);
+        message_t msg = create_message("DU GAIDELIAI", 2, 3);
+        async_send(msg);
+        async_recv();
+        //monitor_write(response.body);
     }
 }
 
@@ -29,15 +31,14 @@ void process1(){
     int i = 0;
 
     while(1){
-        sync_recv();
-        PANIC("AJAJAI ENTERING 3 PROCESS");
+        async_recv();
         for (i = 0; i < 100000000; i++) {
-            if (i % 1000000 == 0){
+            if (i % 10000000 == 0){
                 monitor_write_number(getpid(), 10);
             }
         }
 
-        message_t msg = create_message("dsa", 0, 2);
+        message_t msg = create_message("TRYS GAIDELIAI", 3, 2);
         async_send(msg);    
     }
 }

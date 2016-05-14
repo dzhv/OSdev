@@ -5,7 +5,7 @@
 #include "../paging/paging.h"
 
 #define MAXITEMS 1000 
-#define MAX_MESSAGES 100
+#define MAX_MESSAGES 1000
 #define MAX_MESSAGE_LENGTH 100
 typedef s32int pid_t;
 
@@ -36,6 +36,8 @@ typedef struct task {
   buffer_t messages_buffer;
 } task_t;
 
+void async_send(message_t msg);
+
 void initialize_tasking();
 
 void switch_task();
@@ -57,7 +59,7 @@ message_t create_message(char* message, pid_t src, pid_t dst);
 
 void push_message(message_t msg);
 
-void async_send(message_t msg);
+
 
 message_t sync_recv();
 

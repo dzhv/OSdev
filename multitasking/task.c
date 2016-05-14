@@ -227,14 +227,11 @@ void runFunctionAsync(void (*function)( void ) ){
 
 void async_send(message_t msg)
 {
-  PANIC("before smth");
   task_switch_enabled = 0;
-  monitor_write("\nDISABLED_send");
   msg.src=current_task->id; //we must not rely on it's set
-  PANIC("before smth");
   task_t *dst = getProcess(msg.dst);
-  PANIC("before smth");
-  buffer_t tmpbuff = dst->messages_buffer;//map_buffer(msg->dst); //temporarily map destination's buffer into sender process' address space
+ 
+//  buffer_t tmpbuff = dst->messages_buffer;//map_buffer(msg->dst); //temporarily map destination's buffer into sender process' address space
   //if (tmpbuff->count==MAXITEMS) { //if receiver buffer is full, block
 //    pushwaitqueue(msg.dst,current_process); //record this process in dst's sender queue
  //   block(current_process);
@@ -248,7 +245,6 @@ void async_send(message_t msg)
  // unmap_buffer();
   
   task_switch_enabled = 1;
-  monitor_write("\nENABLED");
 }
 
 message_t async_recv()
@@ -256,31 +252,26 @@ message_t async_recv()
   message_t *tmp=0;
 
   task_switch_enabled = 0;
-  monitor_write("DISABLED_recv");
+  monitor_write("\n count: ");
+  monitor_write_number(current_task->messages_buffer.count, 10);
+  monitor_write("\n");
+
   if (current_task->messages_buffer.count==0){
     current_task->task_state = SUSPENDED;//block(current_process); //if there's nothing to get, block
     task_switch_enabled = 1;
     switch_task();
   } 
   
-
   tmp = pop_message(current_task->id);
-  monitor_write("\n");
-  monitor_write(tmp->body);
-  monitor_write("\n");
-  
-  PANIC("asd");
   //tmp=pop_message(buff);
   //while(topwaitqueue()!=NULL) awake(popwaitqueue()); //awake blocked processes waiting to send
   task_switch_enabled = 1;
-  monitor_write("\nENABLED");
   return (*tmp);
 }
 
 message_t sync_send(message_t msg)
 {
   async_send(msg); //we send the message
-  PANIC("MESSAGE SENDED");
   return(async_recv()); //and we block waiting for the response
 }
 
@@ -288,27 +279,38 @@ message_t sync_recv()
 {
   message_t tmp;
   tmp=async_recv();  //wait for a message to arrive
+
   //tmp=consume(tmp);  //process the message and return a response message
   async_send(tmp);   //send it back to the caller
+  
   return tmp;
 }
 
 void push_message(message_t msg) {
+
   task_t *process = getProcess(msg.dst); 
   int head = process->messages_buffer.head;
   if (++head > MAX_MESSAGES) head = 0;
+  if (process->messages_buffer.count == 0 && head == 0) process->messages_buffer.tail = 1;
   process->messages_buffer.head = head;
   process->messages_buffer.count++;
   process->messages_buffer.buffer[head] = msg;
+  monitor_write("\nPROCESS ID: ");
+  monitor_write_number(process->id, 10);
+  monitor_write("\n");
+  monitor_write("\nHEAD: ");
+  monitor_write_number(head, 10);
+  monitor_write("\n");
+
 }
 
 message_t* pop_message(pid_t id) {
   task_t *process = getProcess(id);
   int tail = process->messages_buffer.tail;
   message_t return_msg = process->messages_buffer.buffer[tail];
-
   if (++tail > MAX_MESSAGES) process->messages_buffer.tail = 0;
   process->messages_buffer.count--;
+
   return &return_msg;
 }
 
